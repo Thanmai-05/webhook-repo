@@ -11,26 +11,40 @@
 
     <script>  
         async function fetchEvents() {  
-            const response = await fetch('https://07b4-2406-7400-3b-8435-8df2-7e7-138-b8eb.ngrok-free.app/events');  
-            const events = await response.json();  
-            const eventsDiv = document.getElementById('events');  
-            eventsDiv.innerHTML = '';  
-
-            events.forEach(event => {  
-                let message = '';  
-                const timestamp = new Date(event.timestamp).toLocaleString();  
-                if (event.action === 'push') {  
-                    message = `${event.actor} pushed to ${event.to_branch} on ${timestamp}`;  
-                } else if (event.action === 'pull_request') {  
-                    message = `${event.actor} submitted a pull request on ${timestamp}`;  
+            try {  
+                const response = await fetch('/events');  
+                if (!response.ok) {  
+                    throw new Error('Network response was not ok');  
                 }  
-                const eventElement = document.createElement('div');  
-                eventElement.textContent = message;  
-                eventsDiv.appendChild(eventElement);  
-            });  
+                const events = await response.json();  
+                const eventsDiv = document.getElementById('events');  
+                eventsDiv.innerHTML = ''; // Clear previous events  
+                
+                events.forEach(event => {  
+                    let message = '';  
+                    const timestamp = new Date(event.timestamp).toLocaleString();  
+
+                    if (event.event === 'push') {  
+                        message = `${event.actor} pushed to ${event.to_branch} on ${timestamp}`;  
+                    } else if (event.event === 'pull_request') {  
+                        message = `${event.actor} submitted a pull request from ${event.from_branch} to ${event.to_branch} on ${timestamp}`;  
+                    } else if (event.event === 'merge') {  
+                        message = `${event.actor} merged branch ${event.from_branch} to ${event.to_branch} on ${timestamp}`;  
+                    }
+
+                    if (message) {  
+                        const eventElement = document.createElement('div');  
+                        eventElement.textContent = message;  
+                        eventsDiv.appendChild(eventElement);  
+                    }  
+                });  
+            } catch (error) {  
+                console.error('Error fetching events:', error);  
+            }  
         }  
 
-        setInterval(fetchEvents, 15000); // Poll every 15 seconds  
+        // Polling the events every 15 seconds  
+        setInterval(fetchEvents, 15000);  
         fetchEvents(); // Initial fetch  
     </script>  
 </body>  
