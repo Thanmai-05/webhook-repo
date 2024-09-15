@@ -1,0 +1,37 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+    <meta charset="UTF-8">  
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+    <title>GitHub Events</title>  
+</head>  
+<body>  
+    <h1>Latest GitHub Events</h1>  
+    <div id="events"></div>  
+
+    <script>  
+        async function fetchEvents() {  
+            const response = await fetch('/events');  
+            const events = await response.json();  
+            const eventsDiv = document.getElementById('events');  
+            eventsDiv.innerHTML = '';  
+
+            events.forEach(event => {  
+                let message = '';  
+                const timestamp = new Date(event.timestamp).toLocaleString();  
+                if (event.action === 'push') {  
+                    message = `${event.actor} pushed to ${event.to_branch} on ${timestamp}`;  
+                } else if (event.action === 'pull_request') {  
+                    message = `${event.actor} submitted a pull request on ${timestamp}`;  
+                }  
+                const eventElement = document.createElement('div');  
+                eventElement.textContent = message;  
+                eventsDiv.appendChild(eventElement);  
+            });  
+        }  
+
+        setInterval(fetchEvents, 15000); // Poll every 15 seconds  
+        fetchEvents(); // Initial fetch  
+    </script>  
+</body>  
+</html>
